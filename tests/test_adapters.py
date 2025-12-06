@@ -38,7 +38,7 @@ async def test_dspy_hook_injection(mock_redis_manager):
         # Mock super().forward using patch on dspy.Predict
         # Since AdaptedPredictor inherits from dspy.Predict, we patch dspy.Predict.forward
         with patch("dspy.Predict.forward", return_value="mock_answer") as mock_forward:
-            await predictor.forward(query="hello", session_id="test_dspy")
+            predictor.forward(query="hello", session_id="test_dspy")
 
             # Verify kwargs passed to super().forward
             args, kwargs = mock_forward.call_args
@@ -63,7 +63,7 @@ async def test_dspy_hook_cycle_warning(mock_redis_manager):
         predictor = AdaptedPredictor()
 
         with patch("dspy.Predict.forward", return_value="mock_answer") as mock_forward:
-            await predictor.forward(query="hello", session_id="test_cycle")
+            predictor.forward(query="hello", session_id="test_cycle")
 
             args, kwargs = mock_forward.call_args
             assert "WARNING: Cycle detected!" in kwargs['context']

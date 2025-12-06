@@ -40,3 +40,13 @@ class ContextState(BaseModel):
         # Serialize to JSON with sorted keys for consistency
         state_str = json.dumps(data, sort_keys=True)
         return hashlib.sha256(state_str.encode("utf-8")).hexdigest()
+
+    def is_cycle_detected(self) -> bool:
+        """Checks if the current state hash exists in the cycle history.
+
+        Returns:
+            bool: True if a cycle is detected (hash appears more than once), False otherwise.
+        """
+        current_hash = self.calculate_hash()
+        # Since history includes the current state (last save), we look for recurrence.
+        return self.cycle_history.count(current_hash) > 1

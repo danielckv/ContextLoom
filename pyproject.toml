@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "contextloom"
+version = "0.1.0"
+description = "ContextLoom: State-management middleware"
+authors = ["Jules <jules@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.0.0"
+redis = "^5.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+fakeredis = "^2.20.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

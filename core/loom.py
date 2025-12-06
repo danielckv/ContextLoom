@@ -55,9 +55,8 @@ class ContextLoom:
         if self.redis_manager is None:
             # Auto-initialize if not done explicitly
             await self.initialize()
-
-        if self.redis_manager is None:
-             raise RuntimeError("Failed to initialize RedisManager")
+            if self.redis_manager is None:
+                raise RuntimeError("Failed to initialize RedisManager")
 
         # 1. Check Redis
         state = await self.redis_manager.load_context(session_id)
@@ -65,16 +64,28 @@ class ContextLoom:
             return state
 
         # 2. Cold Start Hydration
-        # Format the query with the session_id
+        # Use parameterized query to prevent SQL injection
+        # Query template should use :session_id style placeholder
         try:
-            query = self.query_template.format(session_id=session_id)
-        except KeyError:
-            # Fallback if template doesn't use session_id or uses other keys
-            # We assume the template is correct for the use case
-            query = self.query_template
-
-        # Fetch data
-        static_data = await self.connector.fetch(query)
+            # Check if the template contains the session_id placeholder
+            if ':session_id' in self.query_template:
+                # Use parameterized query
+                static_data = await self.connector.fetch(
+                    self.query_template,
+                    values={'session_id': session_id}
+                )
+            elif '{session_id}' in self.query_template:
+                # Template uses old format, raise error for security
+                raise ValueError(
+                    "Query template uses unsafe {{session_id}} placeholder. "
+                    "Please use :session_id for parameterized queries instead."
+                )
+            else:
+                # No placeholder, use query as-is
+                static_data = await self.connector.fetch(self.query_template)
+        except ValueError:
+            # Re-raise ValueError for template issues
+            raise
 
         # Create new state
         state = ContextState(

@@ -3,7 +3,7 @@
 import pytest
 import asyncio
 import dspy
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch
 from adapters.dspy_hook import dspy_hook
 from adapters.crewai_adapter import ContextLoomCrewStorage
 from models.schema import ContextState

@@ -77,7 +77,7 @@ class ContextLoom:
             elif '{session_id}' in self.query_template:
                 # Template uses old format, raise error for security
                 raise ValueError(
-                    "Query template uses unsafe {{session_id}} placeholder. "
+                    "Query template uses unsafe {session_id} placeholder. "
                     "Please use :session_id for parameterized queries instead."
                 )
             else:

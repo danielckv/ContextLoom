@@ -28,7 +28,9 @@ def dspy_hook(signature: Type[dspy.Signature]) -> Type[dspy.Predict]:
             """Forward pass that injects context synchronously.
             
             Note: This method is synchronous because dspy.Predict.forward is synchronous.
-            Context fetching is handled asynchronously but we can't await here.
+            Context fetching is handled asynchronously, but if called from within a running
+            event loop, context injection will be skipped with a warning logged. For full
+            functionality, call this method from a synchronous context or use an async wrapper.
             """
             session_id = kwargs.get("session_id")
 

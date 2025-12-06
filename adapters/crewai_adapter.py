@@ -58,12 +58,17 @@ class ContextLoomCrewStorage:
 
         This helper bridges synchronous and asynchronous code execution. If an event loop is
         already running (e.g., in an async environment), it schedules the coroutine as a background
-        task using `asyncio.create_task` with proper error handling. If no event loop is running,
+        task using `asyncio.create_task`. The task is fire-and-forget with error logging via a
+        callback, meaning the caller doesn't wait for completion. If no event loop is running,
         it starts one and runs the coroutine to completion. If a `RuntimeError` occurs (e.g., no
         event loop in the current thread), it falls back to `asyncio.run`.
 
         Args:
             coro: The coroutine to execute.
+
+        Note:
+            When the event loop is running, this method returns immediately without waiting for
+            the coroutine to complete. Errors are logged asynchronously via the callback.
         """
         try:
             loop = asyncio.get_event_loop()

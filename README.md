@@ -8,6 +8,8 @@
 
 ContextLoom is an open-source framework designed to decouple **Memory** from **Compute**. It creates a shared, persistent "Context State" residing in Redis that allows disparate LLM frameworks (DSPy, CrewAI, Agno, Google ADK) to share awareness, maintain continuity, and handle "Cold Start" data pulls from traditional databases.
 
+<img width="949" height="552" alt="image" src="https://github.com/user-attachments/assets/0e408458-fd71-462e-b7a9-bb51e092c1c0" />
+
 ---
 
 ## 🚀 Why ContextLoom?

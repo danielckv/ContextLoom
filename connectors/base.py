@@ -20,11 +20,12 @@ class BaseConnector(ABC):
         pass
 
     @abstractmethod
-    async def fetch(self, query: str) -> Dict[str, Any]:
+    async def fetch(self, query: str, values: Dict[str, Any] = None) -> Dict[str, Any]:
         """Fetches data based on the provided query.
 
         Args:
             query: The query string (e.g., SQL or entity ID) used to fetch data.
+            values: Optional dictionary of parameter values for parameterized queries.
 
         Returns:
             Dict[str, Any]: A dictionary containing the fetched results.

@@ -1,24 +1,22 @@
 """DSPy Hook for ContextLoom."""
 
+import logging
 import dspy
 import asyncio
-import logging
 import concurrent.futures
-from typing import Type, Any, Optional, Coroutine
+from typing import Type, Any, Coroutine
 from core.memory_manager import RedisManager
-from core.exceptions import CycleDetectedError
-from models.schema import ContextState
 
 logger = logging.getLogger(__name__)
 
-def dspy_hook(signature: Type[dspy.Signature]) -> Type[dspy.Module]:
+def dspy_hook(signature: Type[dspy.Signature]) -> Type[dspy.Predict]:
     """Creates a Context-Aware DSPy Predictor from a Signature.
 
     Args:
         signature: The DSPy signature to use.
 
     Returns:
-        Type[dspy.Module]: A class inheriting from dspy.Predictor that injects context.
+        Type[dspy.Predict]: A class inheriting from dspy.Predict that injects context.
     """
 
     class ContextAwarePredictor(dspy.Predict):

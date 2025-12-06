@@ -2,10 +2,14 @@
 
 import dspy
 import asyncio
+import logging
+import concurrent.futures
 from typing import Type, Any, Optional
 from core.memory_manager import RedisManager
 from core.exceptions import CycleDetectedError
 from models.schema import ContextState
+
+logger = logging.getLogger(__name__)
 
 def dspy_hook(signature: Type[dspy.Signature]) -> Type[dspy.Module]:
     """Creates a Context-Aware DSPy Predictor from a Signature.
@@ -46,7 +50,7 @@ def dspy_hook(signature: Type[dspy.Signature]) -> Type[dspy.Module]:
                 self._run_async(self._inject_context_async(session_id, kwargs))
             except Exception as e:
                 # Log error but don't crash
-                print(f"ContextLoom Error in dspy_hook: {e}")
+                logger.error(f"ContextLoom Error in dspy_hook: {e}", exc_info=True)
         
         async def _inject_context_async(self, session_id: str, kwargs: dict) -> None:
             """Async implementation of context injection."""
@@ -70,14 +74,17 @@ def dspy_hook(signature: Type[dspy.Signature]) -> Type[dspy.Module]:
                     kwargs['context'] = f"{context_str}\n{current_context}".strip()
         
         def _run_async(self, coro):
-            """Helper to run async code from sync context."""
+            """Helper to run async code from sync context.
+            
+            Note: This is a necessary bridge between the synchronous dspy.Predict.forward
+            and our async Redis operations. While using ThreadPoolExecutor for running
+            async code is not ideal, it's required when the event loop is already running
+            (which can happen in async test contexts or when DSPy is called from async code).
+            """
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
-                    # If loop is running, use run_until_complete in a new thread
-                    # or raise an error. For now, we'll try to run it anyway.
-                    # This might not work in all contexts.
-                    import concurrent.futures
+                    # Event loop is running, we need to run async code in a separate thread
                     with concurrent.futures.ThreadPoolExecutor() as executor:
                         future = executor.submit(asyncio.run, coro)
                         return future.result()

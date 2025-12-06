@@ -4,7 +4,6 @@ import pytest
 from unittest.mock import AsyncMock, patch
 from core.loom import ContextLoom
 from models.schema import ContextState
-from core.memory_manager import RedisManager
 
 @pytest.fixture
 def mock_connector():

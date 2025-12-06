@@ -30,10 +30,10 @@ jobs:
           installer-parallel: true
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --with=dev
 
       - name: Run tests
-        run: poetry run pytest
+        run: poetry run pytest -v --tb=short
 
       - name: Build and publish
         env:

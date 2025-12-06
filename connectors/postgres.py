@@ -27,16 +27,20 @@ class PostgresConnector(BaseConnector):
         """Closes the connection to the database."""
         await self.database.disconnect()
 
-    async def fetch(self, query: str) -> Dict[str, Any]:
+    async def fetch(self, query: str, values: Dict[str, Any] = None) -> Dict[str, Any]:
         """Fetches a single record based on the provided SQL query.
 
         Args:
-            query: The SQL query to execute.
+            query: The SQL query to execute (supports :param_name style placeholders).
+            values: Optional dictionary of parameter values for parameterized queries.
 
         Returns:
             Dict[str, Any]: The result as a dictionary. Returns an empty dict if no result found.
         """
-        record = await self.database.fetch_one(query=query)
+        if values:
+            record = await self.database.fetch_one(query=query, values=values)
+        else:
+            record = await self.database.fetch_one(query=query)
         if record:
             return dict(record)
         return {}

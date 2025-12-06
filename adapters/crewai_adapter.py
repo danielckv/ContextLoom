@@ -1,8 +1,11 @@
 """CrewAI Adapter for ContextLoom."""
 
 import asyncio
+import logging
 from typing import Any, Dict, Optional
 from core.memory_manager import RedisManager
+
+logger = logging.getLogger(__name__)
 
 class ContextLoomCrewStorage:
     """Storage handler for CrewAI that pushes to Redis.
@@ -42,23 +45,50 @@ class ContextLoomCrewStorage:
 
             # Ensure it is a list
             if not isinstance(state.dynamic_state['task_outputs'], list):
-                 state.dynamic_state['task_outputs'] = []
+                state.dynamic_state['task_outputs'] = []
 
             state.dynamic_state['task_outputs'].append(str(value))
 
             await manager.save_context(state)
         except Exception as e:
-            print(f"ContextLoom Error in CrewAI Storage: {e}")
+            logger.error(f"ContextLoom Error in CrewAI Storage: {e}")
 
     def _run_async(self, coro):
-        """Helper to run async code from sync context."""
+        """Runs an async coroutine from a synchronous context, handling event loop state.
+
+        This helper bridges synchronous and asynchronous code execution. If an event loop is
+        already running (e.g., in an async environment), it schedules the coroutine as a background
+        task using `asyncio.create_task`. The task is fire-and-forget with error logging via a
+        callback, meaning the caller doesn't wait for completion. If no event loop is running,
+        it starts one and runs the coroutine to completion. If a `RuntimeError` occurs (e.g., no
+        event loop in the current thread), it falls back to `asyncio.run`.
+
+        Args:
+            coro: The coroutine to execute.
+
+        Note:
+            When the event loop is running, this method returns immediately without waiting for
+            the coroutine to complete. Errors are logged asynchronously via the callback.
+        """
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 # If loop is running, we cannot block.
-                # Use create_task to run in background.
-                asyncio.create_task(coro)
+                # Create task with error handling callback
+                task = asyncio.create_task(coro)
+                task.add_done_callback(self._handle_task_exception)
             else:
                 loop.run_until_complete(coro)
         except RuntimeError:
-             asyncio.run(coro)
+            asyncio.run(coro)
+    
+    def _handle_task_exception(self, task: asyncio.Task):
+        """Handles exceptions from background tasks.
+        
+        Args:
+            task: The completed task to check for exceptions.
+        """
+        try:
+            task.result()
+        except Exception as e:
+            logger.error(f"Error in background task: {e}")

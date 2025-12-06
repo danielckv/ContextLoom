@@ -29,6 +29,12 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run tests
+        run: poetry run pytest
+
       - name: Build and publish
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}

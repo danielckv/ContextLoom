@@ -33,7 +33,7 @@ jobs:
         run: poetry install --no-interaction --with dev
 
       - name: Run tests
-        run: poetry run pytest -v --tb=short
+        run: poetry run pytest --verbose
 
       - name: Build and publish
         env:

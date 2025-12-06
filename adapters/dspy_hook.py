@@ -77,20 +77,19 @@ def dspy_hook(signature: Type[dspy.Signature]) -> Type[dspy.Module]:
             """Helper to run async code from sync context.
             
             Note: This is a necessary bridge between the synchronous dspy.Predict.forward
-            and our async Redis operations. While using ThreadPoolExecutor for running
-            async code is not ideal, it's required when the event loop is already running
-            (which can happen in async test contexts or when DSPy is called from async code).
+            and our async Redis operations. When the event loop is already running
+            (which can happen in async test contexts or when DSPy is called from async code),
+            we need to run async code in a separate thread.
             """
             try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    # Event loop is running, we need to run async code in a separate thread
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
-                        future = executor.submit(asyncio.run, coro)
-                        return future.result()
-                else:
-                    return loop.run_until_complete(coro)
+                # Check if an event loop is currently running
+                asyncio.get_running_loop()
+                # If we get here, a loop is running - need to use a thread
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(asyncio.run, coro)
+                    return future.result()
             except RuntimeError:
+                # No running loop - we can safely use asyncio.run
                 return asyncio.run(coro)
 
     return ContextAwarePredictor

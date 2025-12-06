@@ -4,7 +4,7 @@ import dspy
 import asyncio
 import logging
 import concurrent.futures
-from typing import Type, Any, Optional
+from typing import Type, Any, Optional, Coroutine
 from core.memory_manager import RedisManager
 from core.exceptions import CycleDetectedError
 from models.schema import ContextState
@@ -73,7 +73,7 @@ def dspy_hook(signature: Type[dspy.Signature]) -> Type[dspy.Module]:
                     current_context = kwargs.get('context', "")
                     kwargs['context'] = f"{context_str}\n{current_context}".strip()
         
-        def _run_async(self, coro):
+        def _run_async(self, coro: Coroutine[Any, Any, Any]) -> Any:
             """Helper to run async code from sync context.
             
             Note: This is a necessary bridge between the synchronous dspy.Predict.forward

@@ -1,10 +1,12 @@
 """DSPy Hook for ContextLoom."""
 
-import logging
-import dspy
 import asyncio
 import concurrent.futures
+import logging
 from typing import Type, Any, Coroutine
+
+import dspy
+
 from core.memory_manager import RedisManager
 
 logger = logging.getLogger(__name__)

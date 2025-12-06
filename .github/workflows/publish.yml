@@ -39,5 +39,9 @@ jobs:
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
+          if [ -z "$PYPI_TOKEN" ]; then
+            echo "Error: PYPI_API_TOKEN secret is not set"
+            exit 1
+          fi
           poetry config pypi-token.pypi $PYPI_TOKEN
           poetry publish --build
